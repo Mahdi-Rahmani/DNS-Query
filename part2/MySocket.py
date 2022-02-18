@@ -10,4 +10,12 @@ def send_message(serverPort, serverAddress, message):
     clientSocket.close()
     return response
 
+serverAddress = '127.0.0.1'
+serverPort = 52
+message = '463f010000010000000000000377777706676f6f676c6503636f6d0000010001'
+
+response = send_message(serverPort,serverAddress,message)
+print('The response is:\n', response)
+
+
 
