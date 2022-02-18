@@ -1,5 +1,5 @@
 from socket import *
-serverPort = 52
+serverPort = 53
 serverSocket = socket(AF_INET,SOCK_DGRAM)
 serverSocket.bind(('',serverPort))
 print('the server is ready to receive')

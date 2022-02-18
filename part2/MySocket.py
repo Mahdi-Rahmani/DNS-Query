@@ -19,7 +19,7 @@ def send_message(serverPort, serverAddress, message):
 # if we want to use our server we should change the serverName in to 127.0.0.1 and comment the line 28
 # serverAddress = '127.0.0.1'
 serverAddress = '1.1.1.1'
-serverPort = 52
+serverPort = 53
 message = '463f010000010000000000000377777706676f6f676c6503636f6d0000010001'
 
 response = send_message(serverPort,serverAddress,message)
