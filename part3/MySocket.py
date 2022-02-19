@@ -1,3 +1,8 @@
+import csv
+from socket import *
+from DNSMessage import DNSMessage
+import binascii
+
 # we can find the list of types from searching(specially wikipedia)
 types = ["ERROR", "A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", "MR", "NULL", "WKS", "PTR", "HINFO",
          "MINFO", "MX", "TXT", 'RP', 'AFSDB', 'X25', 'ISDN', 'RT', 'NSAP', 'NSAP-PTR', 'SIG', 'KEY', 'PX',
@@ -15,3 +20,18 @@ def user_interface():
         if DNSType in types:
             break
     return name_address, DNSType
+
+def message_creator(DNSType, nameAddress, id):
+    # now we should create an object from DNSMessage class
+    myDNSQuery = DNSMessage(DNSType, nameAddress, id)
+    return myDNSQuery.message_builder()
+
+
+def send_message(serverPort, serverAddress, message):
+    # now we should create a socket
+    clientSocket = socket(AF_INET, SOCK_DGRAM)
+    clientSocket.sendto(binascii.unhexlify(message), (serverAddress, serverPort))
+    response, serverAddress = clientSocket.recvfrom(2048)
+    response = binascii.hexlify(response).decode("utf-8")
+    clientSocket.close()
+    return response
