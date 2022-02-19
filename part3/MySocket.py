@@ -1,5 +1,6 @@
 import csv
 from socket import *
+from ServerResponseHandler import ServerResponseHandler
 from DNSMessage import DNSMessage
 import binascii
 
@@ -35,3 +36,12 @@ def send_message(serverPort, serverAddress, message):
     response = binascii.hexlify(response).decode("utf-8")
     clientSocket.close()
     return response
+
+def IPAddressFinder(response):
+    My_ServerResponseHandler = ServerResponseHandler()
+    return My_ServerResponseHandler.return_IP(response)
+
+
+def response_parser(response):
+    My_ServerResponseHandler = ServerResponseHandler()
+    return My_ServerResponseHandler.parse_answer(response)
