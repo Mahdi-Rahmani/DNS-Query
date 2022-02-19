@@ -1,9 +1,31 @@
 import binascii
 
+""" In this class we create a new DNS query of type A and
+with the address name that the user give us """
+
 
 class DNSMessage:
-    def __init__(self, type, address , id):
+    """ in the first part of third section we should ask from user to enter a name address
+    after that we should build a message to get the record with A type"""
 
+    def __init__(self, type, address , id):
+        # the message has a header and a question part
+        # the header has a form like this:
+        """ 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                       ID                      |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    QDCOUNT                    |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    ANCOUNT                    |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    NSCOUNT                    |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    ARCOUNT                    |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+"""
+        # We hold the header in a List
         ID = id
         QR = '0'
         OPCODE = '0000'
@@ -27,6 +49,18 @@ class DNSMessage:
             '{:04x}'.format(ARCOUNT)
         ]
 
+        # the question part has a form like this:
+        """ 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    QNAME                      /
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    QTYPE                      |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            |                    QCLASS                     |
+            +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+"""
+        # We hold the question part in a List
+        # QNAME = address
+        # QTYPE = type
         QCLASS = 1
 
         self.question = [
@@ -34,6 +68,11 @@ class DNSMessage:
             '{:04x}'.format(self.get_type(type)),
             '{:04x}'.format(QCLASS),
         ]
+
+    """ in the constructor of this class we create a list for holding header 
+    and a list for holding question part. now we need to create the message from 
+     the information that we hold later with this function"""
+
     def message_builder(self):
         # We hold the final message in message variable
         # add the header in message
@@ -53,6 +92,11 @@ class DNSMessage:
         message += self.question[2]
         message = message.replace(" ", "").replace("\n", "")
         return message
+
+    """ We should save a list of types. each type has a specific number. 
+    if user enter the name of type in string format we return that 
+    else if the user enter a number we should find type peer to that number in the list"""
+
     def get_type(self, DNSType):
         # we can find the list of types from searching(specially wikipedia)
         types = ["ERROR", "A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", "MR", "NULL", "WKS", "PTR", "HINFO",
