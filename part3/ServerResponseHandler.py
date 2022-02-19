@@ -2,6 +2,8 @@ import binascii
 
 
 class ServerResponseHandler:
+    """ we can call this function to return IP address if it exist in RD_DATA"""
+
     def return_IP(self, message):
         response = self.parse_answer(message)
         if len(response['Answer']) > 0:
@@ -9,7 +11,27 @@ class ServerResponseHandler:
         else:
             return 'IP Address Not found'
 
+    """ This function parse the answer of server and hold the information
+    in a dictionary. """
+
     def parse_answer(self, message):
+        # We want to parse answer in a dictionary
+        # first we decode header section
+        # The header has a form like this:
+        """        0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                   |                       ID                      |
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                   |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                   |                    QDCOUNT                    |
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                   |                    ANCOUNT                    |
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                   |                    NSCOUNT                    |
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                   |                    ARCOUNT                    |
+                   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+"""
 
         response = {'Response RAW': message,
                     'ID': (int(message[0:4], 16)),
@@ -95,3 +117,61 @@ class ServerResponseHandler:
                     # now we should add this section to the related key in response
                     response[Ans_Auth_Add_NAME[index]].append(section)
         return response
+
+    """ in this function we parse the QNAME of the question part
+        and we know in QNAME first of each part we have the length of that part
+        and after we have main part.
+        in this version of function we find name address parts recursively"""
+
+    def parse_parts(self, message, start, parts):
+        part_start = start + 2
+        part_len = message[start:part_start]
+
+        if len(part_len) == 0:
+            return parts
+
+        part_end = part_start + (int(part_len, 16) * 2)
+        parts.append(message[part_start:part_end])
+
+        if message[part_end:part_end + 2] == "00" or part_end > len(message):
+            return parts
+        else:
+            return self.parse_parts(message, part_end, parts)
+
+    """ We should save a list of types. each type has a specific number. 
+    if user enter the name of type in string format we return that 
+    else if the user enter a number we should find type peer to that number in the list"""
+
+    def get_type(self, DNSType):
+        # we can find the list of types from searching(specially wikipedia)
+        types = ["ERROR", "A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", "MR", "NULL", "WKS", "PTR", "HINFO",
+                 "MINFO", "MX", "TXT", 'RP', 'AFSDB', 'X25', 'ISDN', 'RT', 'NSAP', 'NSAP-PTR', 'SIG', 'KEY', 'PX',
+                 'GPOS', 'AAAA', 'LOC', 'NXT', 'EID', 'NB', 'NBSTAT', 'ATMA']
+        # if the entry type was a string we should return it
+        # else if the user enter the number we should return the peer type in list
+        if isinstance(DNSType, str):
+            return types.index(DNSType)
+        else:
+            return types[DNSType]
+
+    """ This function like the above function but we find name address parts with a loop"""
+
+    def parse_part_version2(message, start, parts):
+        part_end = start
+        while ~(message[part_end:part_end + 2] == "00" or part_end > len(message)):
+            part_start = start + 2
+            part_len = message[start:part_start]
+
+            if len(part_len) == 0:
+                return parts
+
+            part_end = part_start + (int(part_len, 16) * 2)
+            parts.append(message[part_start:part_end])
+            start = part_end
+        return parts
+
+    def get_name_address(self, message):
+        QUESTION_SECTION_STARTS = 24
+        address_name_parts = ServerResponseHandler.parse_parts(message, QUESTION_SECTION_STARTS, [])
+        address_name = ".".join(map(lambda p: binascii.unhexlify(p).decode(), address_name_parts))
+        return address_name
