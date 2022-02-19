@@ -53,3 +53,14 @@ class DNSMessage:
         message += self.question[2]
         message = message.replace(" ", "").replace("\n", "")
         return message
+    def get_type(self, DNSType):
+        # we can find the list of types from searching(specially wikipedia)
+        types = ["ERROR", "A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", "MR", "NULL", "WKS", "PTR", "HINFO",
+                 "MINFO", "MX", "TXT", 'RP', 'AFSDB', 'X25', 'ISDN', 'RT', 'NSAP', 'NSAP-PTR', 'SIG', 'KEY', 'PX',
+                 'GPOS', 'AAAA', 'LOC', 'NXT', 'EID', 'NB', 'NBSTAT', 'ATMA']
+        # if the entry type was a string we should return it
+        # else if the user enter the number we should return the peer type in list
+        if isinstance(DNSType, str):
+            return types.index(DNSType)
+        else:
+            return types[DNSType]
